@@ -1,0 +1,80 @@
+#!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# STOP PHP-FPM
+#=================================================
+ynh_script_progression "Stopping PHP-FPM..."
+
+ynh_systemctl --service="php$php_version-fpm" --action="reload"
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_script_progression "Upgrading source files..."
+
+# Download, check integrity, uncompress and patch the source from manifest.toml
+ynh_setup_source --dest_dir="$install_dir" --full_replace
+
+#=================================================
+# REAPPLY SYSTEM CONFIGURATION
+#=================================================
+ynh_script_progression "Upgrading system configurations related to $app..."
+
+ynh_config_add_nginx
+
+ynh_config_add_phpfpm --php_version="$php_version"
+
+#=================================================
+# UPGRADE OWNCLOUD
+#=================================================
+ynh_script_progression "Upgrading $app..."
+
+# Set write access for the following commands
+chown -R $app:www-data "$install_dir"
+chown -R $app: "$data_dir"
+
+# Run the upgrade
+exec_occ upgrade || ynh_die "Unable to upgrade $app"
+
+#=================================================
+# POST-UPGRADE MAINTENANCE
+#=================================================
+
+exec_occ db:add-missing-indices
+exec_occ db:add-missing-columns
+exec_occ db:convert-filecache-bigint -n
+
+#=================================================
+# RESTORE PERMISSIONS
+#=================================================
+
+# Fix app ownerships & permissions
+chown -R $app:www-data "$install_dir"
+chown -R $app: "$data_dir"
+find $install_dir/ -type f -print0 | xargs -r0 chmod 0644
+find $install_dir/ -type d -print0 | xargs -r0 chmod 0755
+find $data_dir/data/ -type f -print0 | xargs -r0 chmod 0640
+find $data_dir/data/ -type d -print0 | xargs -r0 chmod 0750
+chmod 600 "$install_dir/config/config.php"
+chmod 755 /home/yunohost.app
+chmod 750 $install_dir
+
+#=================================================
+# RELOAD PHP-FPM
+#=================================================
+ynh_script_progression "Reloading PHP-FPM..."
+
+ynh_systemctl --service="php$php_version-fpm" --action="reload"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression "Upgrade of $app completed"

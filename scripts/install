@@ -1,0 +1,164 @@
+#!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# INITIALIZE AND STORE SETTINGS
+#=================================================
+
+ynh_app_setting_set --key=password --value=$password
+ynh_app_setting_set_default --key=php_upload_max_filesize --value=10G
+ynh_app_setting_set_default --key=php_memory_limit --value=512M
+
+phpflags="--define apc.enable_cli=1"
+ynh_app_setting_set --key=phpflags --value="$phpflags"
+
+#=================================================
+# CREATE A MYSQL DATABASE
+#=================================================
+ynh_script_progression "Creating MySQL database..."
+
+ynh_mysql_db_shell <<< "ALTER DATABASE $db_name CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_script_progression "Setting up source files..."
+
+# Download, check integrity, uncompress and patch the source from manifest.toml
+ynh_setup_source --dest_dir="$install_dir"
+
+#=================================================
+# PHP-FPM CONFIGURATION
+#=================================================
+ynh_script_progression "Configuring PHP-FPM..."
+
+ynh_config_add_phpfpm --php_version="$php_version"
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression "Configuring NGINX web server..."
+
+# Check if .well-known is available for this domain
+if is_url_handled --domain="$domain" --path="/.well-known/caldav" || is_url_handled --domain="$domain" --path="/.well-known/carddav"
+then
+    ynh_print_warn "Another app already uses the domain $domain to serve a CalDAV/CardDAV feature. You may encounter issues when dealing with your calendar or address book."
+fi
+
+ynh_config_add_nginx
+
+#=================================================
+# INSTALL OWNCLOUD
+#=================================================
+ynh_script_progression "Installing $app..."
+
+# Create log directory
+mkdir -p "/var/log/$app"
+chown $app:www-data "/var/log/$app"
+
+# Set write access for the following commands
+chown -R $app:www-data "$install_dir"
+chown -R $app: "$data_dir"
+
+# Define password in an intermediate var
+admin_password="$(ynh_string_random --length=16)"
+
+# Install ownCloud using occ
+exec_occ maintenance:install \
+    --database "mysql" --database-name $db_name \
+    --database-user $db_user --database-pass "$db_pwd" \
+    --admin-user "admin" --admin-pass "$admin_password" \
+    --data-dir "$data_dir/data" \
+    || ynh_die "Unable to install $app"
+
+#=================================================
+# CONFIGURE OWNCLOUD
+#=================================================
+ynh_script_progression "Configuring $app..."
+
+# Set the mysql.utf8mb4 config to true in config.php
+exec_occ config:system:set mysql.utf8mb4 --type=boolean --value="true"
+
+# move the logs from the data_dir to the standard /var/log
+mkdir -p "/var/log/$app"
+chown $app:www-data "/var/log/$app"
+exec_occ config:system:set logfile --value="/var/log/$app/owncloud.log"
+
+# Ensure that UpdateNotification app is disabled
+exec_occ app:disable updatenotification
+
+# Enable LDAP plugin
+exec_occ app:enable user_ldap
+ldap_config_prefix=$(exec_occ ldap:create-empty-config --only-print-prefix)
+ynh_app_setting_set --key=ldap_config_prefix --value="$ldap_config_prefix"
+
+# Configure LDAP
+ldap_email_attr="mail"
+ynh_app_setting_set --key=ldap_email_attr --value="$ldap_email_attr"
+
+exec_occ ldap:test-config "$ldap_config_prefix" || ynh_die "An error occured during LDAP configuration"
+
+#=================================================
+# SET TRUSTED DOMAINS
+#=================================================
+
+exec_occ config:system:set trusted_domains 1 --value="$domain"
+
+#=================================================
+# REMOVE THE TEMPORARY ADMIN AND SET THE TRUE ONE
+#=================================================
+
+# Set the user as admin
+ynh_mysql_db_shell <<< "INSERT INTO oc_group_user VALUES ('admin','$admin');"
+
+# And delete admin user
+exec_occ user:delete admin
+
+#=================================================
+# STORE THE CHECKSUM OF THE CONFIG FILE
+#=================================================
+
+# Calculate and store the config file checksum into the app settings
+ynh_store_file_checksum "$install_dir/config/config.php"
+
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+
+# Fix app ownerships & permissions
+chown -R $app:www-data "$install_dir"
+chown -R $app: "$data_dir"
+find $install_dir/ -type f -print0 | xargs -r0 chmod 0644
+find $install_dir/ -type d -print0 | xargs -r0 chmod 0755
+find $data_dir/data/ -type f -print0 | xargs -r0 chmod 0640
+find $data_dir/data/ -type d -print0 | xargs -r0 chmod 0750
+chmod 600 "$install_dir/config/config.php"
+chmod 755 /home/yunohost.app
+chmod 750 $install_dir
+
+#=================================================
+# SETUP LOGROTATE
+#=================================================
+ynh_script_progression "Configuring log rotation..."
+
+ynh_config_add_logrotate
+
+#=================================================
+# SETUP FAIL2BAN
+#=================================================
+ynh_script_progression "Configuring Fail2Ban..."
+
+# Create a dedicated Fail2Ban config
+ynh_config_add_fail2ban --logpath="/var/log/$app/owncloud.log"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression "Installation of $app completed"

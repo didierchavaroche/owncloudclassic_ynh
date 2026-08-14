@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+# No need to stop service for URL change with PHP-FPM
+
+#=================================================
+# MODIFY URL IN NGINX CONF
+#=================================================
+ynh_script_progression "Updating NGINX web server configuration..."
+
+# this will most likely adjust NGINX config correctly
+ynh_config_change_url_nginx
+
+#=================================================
+# UPDATE TRUSTED DOMAINS
+#=================================================
+ynh_script_progression "Updating $app's configuration..."
+
+exec_occ config:system:set trusted_domains 1 --value="$domain"
+
+#=================================================
+# RELOAD NGINX AND PHP-FPM
+#=================================================
+ynh_script_progression "Reloading NGINX web server and PHP-FPM..."
+
+ynh_systemctl --service=nginx --action=reload
+
+ynh_systemctl --service="php$php_version-fpm" --action=reload
+
+# No need to start service for URL change with PHP-FPM
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression "Change of URL completed for $app"

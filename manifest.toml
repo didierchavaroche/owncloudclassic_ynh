@@ -1,0 +1,107 @@
+#:schema https://raw.githubusercontent.com/YunoHost/apps/master/schemas/manifest.v2.schema.json
+
+packaging_format = 2
+
+id = "owncloud"
+name = "ownCloud"
+description.en = "Online storage, file sharing platform - Classic Edition"
+description.fr = "Stockage en ligne, plateforme de partage de fichiers - Édition Classique"
+
+version = "10.16.3~ynh1"
+
+maintainers = ["didierchavaroche"]
+
+[upstream]
+license = "AGPL-3.0"
+website = "https://owncloud.com"
+demo = "https://demo.owncloud.com/"
+admindoc = "https://doc.owncloud.com/server/latest/admin_manual/"
+userdoc = "https://doc.owncloud.com/server/latest/user_manual/en/"
+code = "https://github.com/owncloud/core"
+cpe = "cpe:2.3:a:owncloud:owncloud"
+
+[integration]
+yunohost = ">= 12.1.39"
+helpers_version = "2.1"
+architectures = "all"
+multi_instance = false
+
+ldap = true
+sso = true
+
+disk = "500M"
+ram.build = "500M"
+ram.runtime = "128M"
+
+[install]
+    [install.domain]
+    type = "domain"
+
+    [install.path]
+    type = "path"
+    default = "/owncloud"
+    
+    [install.init_main_permission]
+    type = "group"
+    default = "visitors"
+
+    [install.language]
+    ask.en = "Choose the application language"
+    ask.fr = "Choisissez la langue de l'application"
+    type = "select"
+    choices = ["cs", "de", "en", "es", "fr", "gl", "it"]
+    default = "fr"
+
+    [install.admin]
+    type = "user"
+
+    [install.password]
+    type = "password"
+
+[resources]
+
+    [resources.sources.main]
+    url = "https://download.owncloud.com/server/stable/owncloud-complete-20260522.tar.bz2"
+    sha256 = "3ff79a96a4bcbb78ff9396c20f485391123da9ecd88a44da7754e676dfd821ec"
+    in_subdir = false
+
+    [resources.system_user]
+    allow_email = true
+    
+    [resources.install_dir]
+    group = "www-data:r-x"
+
+    [resources.data_dir]
+    subdirs = ["data", "config"]
+
+    [resources.permissions]
+    main.url = "/"
+    main.auth_header = false
+    
+    api.url = "re:__DOMAIN__\\/.well-known\\/.*"
+    api.auth_header = false
+    api.show_tile = false
+    api.protected = true
+    api.allowed = ["visitors", "all_users"]
+
+    [resources.ports]
+
+    [resources.apt]
+    packages = [
+        "mariadb-server",
+        "php8.3-mysql",
+        "php8.3-gd",
+        "php8.3-curl",
+        "php8.3-mbstring",
+        "php8.3-xml",
+        "php8.3-zip",
+        "php8.3-bz2",
+        "php8.3-intl",
+        "php8.3-imagick",
+        "imagemagick",
+        "redis-server",
+        "php8.3-redis",
+    ]
+
+    [resources.database]
+    type = "mysql"
