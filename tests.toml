@@ -13,7 +13,11 @@ test_format = 1.0
     # -------------------------------
     # Default args to use for install
     # -------------------------------
-    install.args = { domain = "domain.tld", path = "/owncloud", admin = "admin", password = "test123", language = "en" }
+    args.domain = "domain.tld"
+    args.path = "/owncloud"
+    args.admin = "admin"
+    args.password = "test123"
+    args.language = "en"
 
     # -------------------------------
     # Commits to test upgrade from
