@@ -77,12 +77,6 @@ ram.runtime = "128M"
     [resources.permissions]
     main.url = "/"
     main.auth_header = false
-    
-    api.url = "re:__DOMAIN__\\/.well-known\\/.*"
-    api.auth_header = false
-    api.show_tile = false
-    api.protected = true
-    api.allowed = ["visitors", "all_users"]
 
     [resources.ports]
 
