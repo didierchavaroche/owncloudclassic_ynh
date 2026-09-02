@@ -90,25 +90,25 @@ exec_occ config:system:set logfile --value="/var/log/$app/owncloud.log"
 # Ensure that UpdateNotification app is disabled
 exec_occ app:disable updatenotification
 
-#TO DO : Enable LDAP plugin
+#Enable LDAP plugin
 exec_occ app:enable user_ldap
+configID=$(exec_occ ldap:create-empty-config 2>/dev/null | grep -oP '^\| \Ks\d+' | head -1)
 
-exec_occ app:enable user_ldap
-exec_occ ldap:create-empty-config
-exec_occ ldap:set-config "" ldapHost "127.0.0.1"
-exec_occ ldap:set-config "" ldapPort 389
-exec_occ ldap:set-config "" ldapBase "dc=yunohost,dc=org"
-exec_occ ldap:set-config "" ldapUserDN "ou=users,dc=yunohost,dc=org"
-exec_occ ldap:set-config "" ldapUserFilter "(&(|(objectclass=posixAccount))(uid=%uid)(permission=cn=$app.main,ou=permission,dc=yunohost,dc=org))"
-exec_occ ldap:set-config "" ldapUserFilterMode 1
-exec_occ ldap:set-config "" ldapConfigurationActive 1   
+if [ -n "$configID" ]; then
+    exec_occ ldap:set-config "$configID" ldapHost "127.0.0.1"
+    exec_occ ldap:set-config "$configID" ldapPort 389
+    exec_occ ldap:set-config "$configID" ldapBase "dc=yunohost,dc=org"
+    exec_occ ldap:set-config "$configID" ldapUserDN "ou=users,dc=yunohost,dc=org"
+    exec_occ ldap:set-config "$configID" ldapUserFilter "(&(|(objectclass=posixAccount))(uid=%uid)(permission=cn=$app.main,ou=permission,dc=yunohost,dc=org))"
+    exec_occ ldap:set-config "$configID" ldapUserFilterMode 1
+    exec_occ ldap:set-config "$configID" ldapConfigurationActive 1   
 
-exec_occ ldap:test-config "$ldap_config_prefix" || ynh_die "An error occured during LDAP configuration"
+    exec_occ ldap:test-config "$configID" || ynh_die "An error occured during LDAP configuration"
+fi
 
 #=================================================
 # SET TRUSTED DOMAINS
 #=================================================
-
 exec_occ config:system:set trusted_domains 1 --value="$domain"
 
 #=================================================
@@ -119,7 +119,9 @@ exec_occ config:system:set trusted_domains 1 --value="$domain"
 ynh_mysql_db_shell <<< "INSERT INTO oc_group_user VALUES ('admin','$admin');"
 
 # And delete admin user
-exec_occ user:delete admin
+if [ -n "$configID" ]; then
+    exec_occ user:delete admin
+fi
 
 #=================================================
 # STORE THE CHECKSUM OF THE CONFIG FILE
