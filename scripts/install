@@ -90,16 +90,16 @@ exec_occ config:system:set logfile --value="/var/log/$app/owncloud.log"
 # Ensure that UpdateNotification app is disabled
 exec_occ app:disable updatenotification
 
-# Enable LDAP plugin
-exec_occ app:enable user_ldap
-ldap_config_prefix=$(exec_occ ldap:create-empty-config)
-ynh_app_setting_set --key=ldap_config_prefix --value="$ldap_config_prefix"
+#TO DO : Enable LDAP plugin
+#exec_occ app:enable user_ldap
+#ldap_config_prefix=$(exec_occ ldap:create-empty-config)
+#ynh_app_setting_set --key=ldap_config_prefix --value="$ldap_config_prefix"
 
 # Configure LDAP
-ldap_email_attr="mail"
-ynh_app_setting_set --key=ldap_email_attr --value="$ldap_email_attr"
+#ldap_email_attr="mail"
+#ynh_app_setting_set --key=ldap_email_attr --value="$ldap_email_attr"
 
-exec_occ ldap:test-config "$ldap_config_prefix" || ynh_die "An error occured during LDAP configuration"
+#exec_occ ldap:test-config "$ldap_config_prefix" || ynh_die "An error occured during LDAP configuration"
 
 #=================================================
 # SET TRUSTED DOMAINS
