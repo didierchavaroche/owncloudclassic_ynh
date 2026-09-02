@@ -92,7 +92,7 @@ ram.runtime = "128M"
         "php8.3-bz2",
         "php8.3-intl",
         "php8.3-imagick",
-        "php8.3-ldap"
+        "php8.3-ldap",
         "imagemagick",
         "redis-server",
         "php8.3-redis",
