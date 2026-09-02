@@ -3,7 +3,7 @@
 packaging_format = 2
 
 id = "owncloud"
-name = "ownCloud"
+name = "ownCloud classic"
 description.en = "Online storage, file sharing platform - Classic Edition"
 description.fr = "Stockage en ligne, plateforme de partage de fichiers - Édition Classique"
 
