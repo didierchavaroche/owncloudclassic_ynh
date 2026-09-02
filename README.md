@@ -5,7 +5,7 @@ It shall NOT be edited by hand.
 
 <h1>
   <img src="https://raw.githubusercontent.com/YunoHost/apps/main/logos/owncloud.png" width="32px" alt="Logo of ownCloud">
-  ownCloud Classic, packaged for YunoHost
+  ownCloud 11, packaged for YunoHost
 </h1>
 
 Online storage, file sharing platform - Classic Edition

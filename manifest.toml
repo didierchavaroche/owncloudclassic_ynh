@@ -3,7 +3,7 @@
 packaging_format = 2
 
 id = "owncloud"
-name = "ownCloud classic"
+name = "ownCloud 11"
 description.en = "Online storage, file sharing platform - Classic Edition"
 description.fr = "Stockage en ligne, plateforme de partage de fichiers - Édition Classique"
 
@@ -29,9 +29,9 @@ multi_instance = false
 ldap = true
 sso = true
 
-disk = "500M"
-ram.build = "500M"
-ram.runtime = "128M"
+disk = "2G"
+ram.build = "512M"
+ram.runtime = "512M"
 
 [install]
     [install.domain]
