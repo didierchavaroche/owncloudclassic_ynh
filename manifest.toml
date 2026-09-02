@@ -7,7 +7,7 @@ name = "ownCloud classic"
 description.en = "Online storage, file sharing platform - Classic Edition"
 description.fr = "Stockage en ligne, plateforme de partage de fichiers - Édition Classique"
 
-version = "10.16.3~ynh1"
+version = "11.0.0~ynh1"
 
 maintainers = ["didierchavaroche"]
 
@@ -61,8 +61,8 @@ ram.runtime = "128M"
 [resources]
 
     [resources.sources.main]
-    url = "https://download.owncloud.com/server/stable/owncloud-complete-20260522.tar.bz2"
-    sha256 = "3ff79a96a4bcbb78ff9396c20f485391123da9ecd88a44da7754e676dfd821ec"
+    url = "https://github.com/owncloud/core/releases/download/v11.0.0/owncloud-complete-20260730.tar.bz2"
+    sha256 = "747fcbb48a2df5d1ef61b87768a4e3484184469b876a76a8070e5c026f6396b3"
     in_subdir = false
 
     [resources.system_user]

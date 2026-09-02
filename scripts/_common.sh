@@ -5,7 +5,7 @@
 #=================================================
 
 # Get the actual ownCloud version from the source
-app_version="10.16.3"
+app_version="11.0.0"
 #$(cat "$install_dir/version.php" | grep "OC_Version" | cut -d'"' -f4)
 
 # Define the PHP version to use
