@@ -19,8 +19,8 @@ exec_occ() {
 is_url_handled() {
     status=$(curl -s -o /dev/null -w "%{http_code}" $1)
     if [[ $status == "200" ]] then
-        return 1
-    else
         return 0
+    else
+        return 1
     fi
 }
