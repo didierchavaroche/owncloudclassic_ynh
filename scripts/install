@@ -46,7 +46,7 @@ ynh_config_add_phpfpm --php_version="$php_version"
 ynh_script_progression "Configuring NGINX web server..."
 
 # Check if .well-known is available for this domain
-if is_url_handled --domain="$domain" --path="/.well-known/caldav" || is_url_handled --domain="$domain" --path="/.well-known/carddav"
+if is_url_handled "https://$domain/.well-known/caldav" || is_url_handled "https://$domain/.well-known/carddav"
 then
     ynh_print_warn "Another app already uses the domain $domain to serve a CalDAV/CardDAV feature. You may encounter issues when dealing with your calendar or address book."
 fi

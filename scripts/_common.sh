@@ -15,3 +15,12 @@ php_version="8.3"
 exec_occ() {
     ynh_exec_as_app php "$install_dir/occ" "$@"
 }
+
+is_url_handled() {
+    status=$(curl -s -o /dev/null -w "%{http_code}" $1)
+    if [[ $status == "200" ]] then
+        return 1
+    else
+        return 0
+    fi
+}
