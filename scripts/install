@@ -92,12 +92,16 @@ exec_occ app:disable updatenotification
 
 #TO DO : Enable LDAP plugin
 exec_occ app:enable user_ldap
-ldap_config_prefix=$(exec_occ ldap:create-empty-config)
-ynh_app_setting_set --key=ldap_config_prefix --value="$ldap_config_prefix"
 
-# Configure LDAP
-ldap_email_attr="mail"
-ynh_app_setting_set --key=ldap_email_attr --value="$ldap_email_attr"
+exec_occ app:enable user_ldap
+exec_occ ldap:create-empty-config
+exec_occ ldap:set-config "" ldapHost "127.0.0.1"
+exec_occ ldap:set-config "" ldapPort 389
+exec_occ ldap:set-config "" ldapBase "dc=yunohost,dc=org"
+exec_occ ldap:set-config "" ldapUserDN "ou=users,dc=yunohost,dc=org"
+exec_occ ldap:set-config "" ldapUserFilter "(&(|(objectclass=posixAccount))(uid=%uid)(permission=cn=$app.main,ou=permission,dc=yunohost,dc=org))"
+exec_occ ldap:set-config "" ldapUserFilterMode 1
+exec_occ ldap:set-config "" ldapConfigurationActive 1   
 
 exec_occ ldap:test-config "$ldap_config_prefix" || ynh_die "An error occured during LDAP configuration"
 
