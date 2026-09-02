@@ -13,7 +13,7 @@ php_version="8.3"
 
 # Define the occ command
 exec_occ() {
-    ynh_exec_as_app php "$install_dir/occ" "$@"
+    ynh_exec_as_app php "$install_dir/owncloud/occ" "$@"
 }
 
 is_url_handled() {
